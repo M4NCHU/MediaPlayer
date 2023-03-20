@@ -1,9 +1,30 @@
+import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.*;
-public class MediaPlayer extends JFrame {
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+
+
+public class MusicPlayer extends JFrame implements ActionListener {
+
+    JPanel mainPanel;
+    DefaultListModel<String> listModel;
+    public JPanel leftPanel;
+    JList<String> songList;
+
+
 
     private int toolbarIconsWidth = 20;
     private int toolbarIconsHeight = 20;
@@ -11,10 +32,44 @@ public class MediaPlayer extends JFrame {
     private String sidebarBtnColor = "#2C3E50";
     private String sidebarBtnForeColor = "#ffffff";
 
-    private DefaultListModel<Song> listModel;
-    private JList<Song> songList;
+    private JLabel songLabel;
 
-    public MediaPlayer() {
+    private JButton playBtn, pauseBtn, nextBtn, previousBtn;
+
+
+    //  JavaFX
+
+
+    private Media media;
+    private MediaPlayer mediaPlayer;
+
+    private FileInputStream fileInputStream;
+    private File[] files;
+
+    private int MusicPlayerStatus = 0;
+    private int filepathresponse;
+
+    BufferedInputStream bufferedInputStream;
+    JFileChooser fileChooserPath = new JFileChooser();
+
+    private List<File> songs;
+    private int currentSongIndex;
+    private JList<File> list;
+    private JList<String> listNew;
+
+    FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter("MP3 File","mp3");
+    private int[] speeds;
+
+
+    private Timer timer;
+
+    private boolean running;
+    private ArrayList<String> songPaths;
+
+    public MusicPlayer() {
+
+        this.songs = new ArrayList<>();
+        this.currentSongIndex = -1;
 
         Toolkit tk=Toolkit.getDefaultToolkit();
         Dimension screenSize = tk.getScreenSize();
@@ -34,7 +89,7 @@ public class MediaPlayer extends JFrame {
         container.setLayout(new BorderLayout());
 
         // Pasek boczny
-        JPanel leftPanel = new JPanel();
+        leftPanel = new JPanel();
         JPanel rightPanel = new JPanel();
         leftPanel.setBackground(Color.decode("#7F8C8D"));
         rightPanel.setBackground(Color.decode("#7F8C8D"));
@@ -96,6 +151,7 @@ public class MediaPlayer extends JFrame {
 
         // Elementy panelu bocznego po prawej stronie
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+
         rightPanel.add(new JLabel("Prawy pasek"));
         rightPanel.add(new JButton("Element 1"));
         rightPanel.add(new JButton("Element 2"));
@@ -126,19 +182,34 @@ public class MediaPlayer extends JFrame {
         //        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         //        centerPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        listModel = new DefaultListModel<>();
-        listModel.addElement(new Song("Utwór 1", "Wykonawca 1", "Album 1", "3:47"));
-        listModel.addElement(new Song("Utwór 2", "Wykonawca 2", "Album 2", "4:12"));
-        listModel.addElement(new Song("Utwór 3", "Wykonawca 3", "Album 3", "5:23"));
-        listModel.addElement(new Song("Utwór 4", "Wykonawca 4", "Album 4", "2:55"));
-        listModel.addElement(new Song("Utwór 5", "Wykonawca 5", "Album 5", "3:15"));
+        songPaths = new ArrayList<String>();
+        File songsFolder = new File("songs");
+        if (songsFolder.exists() && songsFolder.isDirectory()) {
+            for (File file : songsFolder.listFiles()) {
+                if (file.isFile() && file.getName().endsWith(".mp3")) {
+                    songPaths.add(file.getPath());
+                }
+            }
+        }
 
-        // Tworzenie listy i ustawianie jej właściwości
+        listModel = new DefaultListModel<>();
+        for (String songPath : songPaths) {
+            listModel.addElement(new File(songPath).getName());
+        }
         songList = new JList<>(listModel);
-        songList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        songList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         songList.setBackground(Color.decode("#2C3E50"));
         songList.setForeground(Color.WHITE);
-
+        ListSelectionListener listSelectionListener = new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    String selectedSongPath = songPaths.get(songList.getSelectedIndex());
+                    playMusic(selectedSongPath);
+                }
+            }
+        };
+        songList.addListSelectionListener(listSelectionListener);
 
 
 
@@ -147,13 +218,31 @@ public class MediaPlayer extends JFrame {
         ImageIcon nextIcon = new ImageIcon(new ImageIcon("./resources/next.png").getImage().getScaledInstance(toolbarIconsWidth, toolbarIconsHeight, Image.SCALE_SMOOTH));
         ImageIcon previousIcon = new ImageIcon(new ImageIcon("./resources/previous.png").getImage().getScaledInstance(toolbarIconsWidth, toolbarIconsHeight, Image.SCALE_SMOOTH));
 
+        playBtn = new JButton(playIcon);
+        previousBtn = new JButton(previousIcon);
+        nextBtn = new JButton(nextIcon);
+
+        // Adding action listeners
+
+
+
+
+
+        songLabel = new JLabel();
+
+
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.add(new JButton(previousIcon));
-        buttonPanel.add(new JButton(playIcon));
-        buttonPanel.add(new JButton(nextIcon));
+        buttonPanel.add(songLabel);
+        buttonPanel.add(previousBtn);
+        buttonPanel.add(playBtn);
+        buttonPanel.add(nextBtn);
 
+
+        playBtn.addActionListener(e -> playCurrentSong());
+        previousBtn.addActionListener(this);
+        nextBtn.addActionListener(e -> playNextSong());
         buttonPanel.setBackground(Color.decode("#34495E"));
 
 
@@ -165,6 +254,9 @@ public class MediaPlayer extends JFrame {
         progressBar.setValue(50);
         bottomPanel.add(progressBar, BorderLayout.SOUTH);
 
+        mediaPlayer = new MediaPlayer(new Media(new File(songPaths.get(0)).toURI().toString()));
+        mediaPlayer.setOnEndOfMedia(() -> playNextSong());
+
         // Dodawanie paneli, listy i paska narzędzi do kontenera
         container.add(leftPanel, BorderLayout.WEST);
         container.add(rightPanel, BorderLayout.EAST);
@@ -175,10 +267,122 @@ public class MediaPlayer extends JFrame {
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new MediaPlayer();
+    private void playNextSong() {
+        int selectedIndex = songList.getSelectedIndex();
+        if (selectedIndex == -1) {
+            playMusic(songPaths.get(0));
+            songList.setSelectedIndex(0);
+        } else if (selectedIndex < songPaths.size() - 1) {
+            playMusic(songPaths.get(selectedIndex + 1));
+            songList.setSelectedIndex(selectedIndex + 1);
+        } else {
+            playMusic(songPaths.get(0));
+            songList.setSelectedIndex(0);
+        }
+    }
+
+    private void playCurrentSong() {
+        int selectedIndex = songList.getSelectedIndex();
+        if (selectedIndex != -1) {
+            String selectedSongPath = songPaths.get(selectedIndex);
+            playMusic(selectedSongPath);
+        }
+    }
+
+    // initialize method, allows user to choose files to play
+    public void init() {
+        File folder = new File("songs");
+        for (File file : folder.listFiles()) {
+            if (file.isFile() && file.getName().endsWith(".mp3")) {
+                songs.add(file);
+                listModel.addElement(songs.toString());
+            }
+        }
+
+//        playNextSong();
+//        if (MusicPlayerStatus == 0) {
+//            // limit file types on FileChooser
+//            fileChooserPath.setFileFilter(fileNameExtensionFilter);
+//            // allow user to choose multiple files
+//            fileChooserPath.setMultiSelectionEnabled(true);
+//            filepathresponse = fileChooserPath.showOpenDialog(leftPanel);
+//            if (filepathresponse == JFileChooser.APPROVE_OPTION) {
+//                files = null;
+//                songNumber = 0;
+//                files = fileChooserPath.getSelectedFiles();
+//                songPath = files[0].getAbsolutePath();
+//
+//
+//                for (int i = 0; i < files.length; i++){
+//                    listModel.addElement(files[i].getName());
+//                }
+//
+//                MusicPlayerStatus = 1;
+//                songList.setSelectedIndex(0);
+//
+//            }
+//        }
+    }
+
+    private void playNextSong(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            System.out.println("Nie podano ścieżki do pliku.");
+            return;
+        }
+
+        File file = new File(filePath);
+        if (!file.isFile() || !file.getName().endsWith(".mp3")) {
+            System.out.println("Nieprawidłowa ścieżka do pliku.");
+            return;
+        }
+
+        Media media = new Media(file.toURI().toString());
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+        }
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setOnEndOfMedia(() -> playNextSong(filePath));
+        mediaPlayer.play();
+
+        System.out.println("Gra teraz: " + file.getName());
+        currentSongIndex++;
+        Platform.runLater(() -> list.setSelectedIndex(currentSongIndex));
+    }
+
+    public void playMusic(String songPath) {
+
+        Media song = new Media(new File(songPath).toURI().toString());
+        mediaPlayer.stop();
+        mediaPlayer = new MediaPlayer(song);
+        mediaPlayer.play();
+
+    }
+
+    public void pauseMusic() {
+        mediaPlayer.pause();
     }
 
 
 
+    public static void main(String[] args) {
+
+        new MusicPlayer();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object o = e.getSource();
+
+//        if (o == playBtn){
+//            playMusic();
+//        }
+         if (o == nextBtn) {
+            init();
+        }
+    }
+
 }
+
+
+
