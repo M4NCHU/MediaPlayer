@@ -1,39 +1,43 @@
 public class Song {
-    private int id;
-    private String title;
-    private String artist;
-    private String album;
-    private String duration;
 
-    public Song(int id, String title, String artist, String album, String duration) {
-        this.id = id;
-        this.title = title;
-        this.artist = artist;
-        this.album = album;
-        this.duration = duration;
+    private String songName;
+    private String songPath;
+    private boolean isFavorite;
+    private static int nextSongId = 0;
+    private int songId;
+
+    public Song(String songName, String songPath, boolean isFavorite) {
+        this.songId = nextSongId++;
+        this.songName = songName;
+        this.songPath = songPath;
+        this.isFavorite = isFavorite;
     }
 
-    public int getId() {
-        return id;
-    }
-    public String getTitle() {
-        return title;
+    public int getSongId() {
+        return songId;
     }
 
-    public String getArtist() {
-        return artist;
+    public String getSongName() {
+        return songName;
     }
 
-    public String getAlbum() {
-        return album;
+    public void setSongName(String songName) {
+        this.songName = songName;
     }
 
-    public String getDuration() {
-        return duration;
+    public String getSongPath() {
+        return songPath;
     }
 
-    @Override
-    public String toString() {
-        return title + " - " + artist + " [" + album + "] (" + duration + ")";
+    public void setSongPath(String songPath) {
+        this.songPath = songPath;
+    }
+
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 }
