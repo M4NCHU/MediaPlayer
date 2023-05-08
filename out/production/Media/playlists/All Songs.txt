@@ -1,0 +1,4 @@
+./resources/songs/relaxing-145038.mp3
+./resources/songs/smoke-143172.mp3
+./resources/songs/voice-over-music-141541.mp3
+./resources/songs/easy-lifestyle-137766.mp3

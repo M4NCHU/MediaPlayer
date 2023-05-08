@@ -24,15 +24,11 @@ public class MediaManager {
         String songPath = "";
 
     }
-    public MediaManager(String SongPath){
-        String songPath = SongPath;
-        System.out.println(songPaths);
-    }
 
     public MediaManager(List<String> songsList){
         songPaths = songsList;
         fxPanel = new JFXPanel();
-        System.out.println(songPaths);
+
     }
 
     public void playSong(String selectedSongPath) {
@@ -140,7 +136,7 @@ public class MediaManager {
         this.songPaths = songPaths;
         if (songPaths != null && !songPaths.isEmpty()) {
             String selectedSongPath = songPaths.get(0);
-            playSong(selectedSongPath);
+
         }
     }
 

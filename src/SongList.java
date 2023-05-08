@@ -14,7 +14,7 @@ public class SongList {
     public SongList(String songsFilePath) {
         songPaths = new ArrayList<>();
         songsFile = new File(songsFilePath);
-        loadSongs();
+
     }
 
 

@@ -38,11 +38,7 @@ public class ButtonEditor extends DefaultCellEditor {
             public void actionPerformed(ActionEvent e) {
 
                 int row = table.convertRowIndexToModel(table.getEditingRow());
-
-                System.out.println(model.getColumnCount() - 1);
                 String songPath = (String) model.getValueAt(row, 1);
-
-
                 mediaManager.playSong(songPath);
                 fireEditingStopped();
             }
