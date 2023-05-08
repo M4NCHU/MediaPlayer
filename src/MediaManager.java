@@ -1,3 +1,4 @@
+import javafx.embed.swing.JFXPanel;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
@@ -16,9 +17,21 @@ public class MediaManager {
 
     private boolean isPlaying = false;
     private String songText = "";
+    private JFXPanel fxPanel;
+
+
+    public MediaManager(){
+        String songPath = "";
+
+    }
+    public MediaManager(String SongPath){
+        String songPath = SongPath;
+        System.out.println(songPaths);
+    }
 
     public MediaManager(List<String> songsList){
         songPaths = songsList;
+        fxPanel = new JFXPanel();
         System.out.println(songPaths);
     }
 
@@ -28,6 +41,9 @@ public class MediaManager {
 
             if (currentMediaPlayer != null) {
                 currentMediaPlayer.stop();
+            }
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
             }
             // Create media object from file
             Media media = new Media(new File(selectedSongPath).toURI().toString());
@@ -119,6 +135,16 @@ public class MediaManager {
             isPlaying = true;
         }
     }
+
+    public void setSongPaths(List<String> songPaths) {
+        this.songPaths = songPaths;
+        if (songPaths != null && !songPaths.isEmpty()) {
+            String selectedSongPath = songPaths.get(0);
+            playSong(selectedSongPath);
+        }
+    }
+
+
 
     // Check status of media player
     public boolean getMediaPlayerStatus() {
