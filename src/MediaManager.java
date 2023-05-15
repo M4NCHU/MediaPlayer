@@ -43,7 +43,7 @@ public class MediaManager {
             }
             // Create media object from file
             Media media = new Media(new File(selectedSongPath).toURI().toString());
-            System.out.println(media);
+
             // Create New MediaPlayer object and place the media object as argument
             mediaPlayer = new MediaPlayer(media);
             // Save Current MediaPlayer object to currentMediaPlayer
@@ -68,7 +68,7 @@ public class MediaManager {
 
     // Next song method
     public void playNextSong() {
-        System.out.println(songNumber);
+
         if (songNumber < songPaths.size() - 1) {
             songNumber++;
         } else {

@@ -137,9 +137,7 @@ private String sidebarBtnForeColor = "#ffffff";
                 if (songFiles != null) {
                         for (File songFile : songFiles) {
                                 String songPath = "./resources/songs/"+songFile.getName();
-                                System.out.println("songPath" + songPath);
-                                System.out.println("example: ./resources/songs/"+songFile.getName());
-                                System.out.println("existingPaths" + existingPaths);
+
                                 if (!existingPaths.contains(songPath)) {
                                         newPaths.add(songPath);
                                 }
@@ -154,6 +152,45 @@ private String sidebarBtnForeColor = "#ffffff";
                                 e.printStackTrace();
                         }
                 }
+        }
+
+        public Boolean checkIfFavourite() {
+                File songsDir = new File("./resources/songs/");
+                File allSongsFile = new File("./resources/playlists/All Songs.txt");
+
+                // Check if All Songs.txt exists
+                if (!allSongsFile.exists()) {
+                        try {
+                                allSongsFile.createNewFile();
+                        } catch (IOException e) {
+                                e.printStackTrace();
+                        }
+                }
+
+                // Read existing paths from All Songs.txt
+                List<String> existingPaths = new ArrayList<>();
+                try {
+                        existingPaths = Files.readAllLines(allSongsFile.toPath());
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+
+                // Find new paths in the songs directory
+
+                File[] songFiles = songsDir.listFiles();
+                if (songFiles != null) {
+                        for (File songFile : songFiles) {
+                                String songPath = "./resources/songs/" + songFile.getName();
+
+                                if (!existingPaths.contains(songPath)) {
+                                        return false;
+                                }
+
+                        }
+                }
+
+
+                return true;
         }
 
 

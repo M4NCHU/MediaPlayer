@@ -4,8 +4,12 @@ import java.awt.*;
 
 public class ButtonRenderer extends JButton implements TableCellRenderer {
 
-    public ButtonRenderer() {
+    public ButtonRenderer(ImageIcon icon) {
         setOpaque(true);
+
+
+
+        setIcon(icon);
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -17,8 +21,6 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
             setForeground(table.getForeground());
             setBackground(UIManager.getColor("Button.background"));
         }
-
-        setText((value == null) ? "" : value.toString());
         return this;
     }
 }

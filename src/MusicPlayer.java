@@ -83,7 +83,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
         nextIcon = iconGenerator.createIcon("./resources/next.png");
         previousIcon = iconGenerator.createIcon("./resources/previous.png");
         pauseIcon = iconGenerator.createIcon("./resources/pause.png");
-
+        System.out.println(playIcon);
         // Music control btns
         playBtn = new JButton(playIcon);
         previousBtn = new JButton(previousIcon);
@@ -122,6 +122,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
                 playBtn.setIcon(checkStatus ? playIcon : pauseIcon);
             }
         });
+
 
         nextBtn.addActionListener(e->mediaManager.playNextSong());
         previousBtn.addActionListener(e->mediaManager.playPreviousSong());
@@ -162,7 +163,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
 //        songsList.setSongsFilePath("./resources/playlists/"+selectedPlaylist+".txt");
 //        songPaths = songsList.getSongPaths();
 //        mediaManager.setSongPaths(songPaths);
-        System.out.println(selectedPlaylist);
+
         if (selectedPlaylist == "" || selectedPlaylist == "All Songs"){
             songsList.setSongsFilePath("./resources/playlists/All Songs.txt");
         } else {
@@ -173,8 +174,8 @@ public class MusicPlayer extends JFrame implements ActionListener {
         mediaManager.setSongPaths(songPaths);
         songPanelX = songPanel.getX();
         songPanelY = songPanel.getY();
-        String[] columnNames = {"Nazwa", "Autor", "Play", "Serduszko"};
-        Object[][] data = new Object[songPaths.size()][4];
+        String[] columnNames = {"Nazwa", "Autor", "Play", "Serduszko", "Dodaj do playlisty"};
+        Object[][] data = new Object[songPaths.size()][5];
 
         for (int i = 0; i < songPaths.size(); i++) {
             String songPath = songPaths.get(i);
@@ -185,26 +186,37 @@ public class MusicPlayer extends JFrame implements ActionListener {
             String songAuthor = song.getSongPath();
             JButton playButton = new JButton("Play");
             JButton serduszkoButton = new JButton("Serduszko");
+            JButton addToPlaylist = new JButton("Dodaj do playlisty");
 
             data[i][0] = songLabel;
             data[i][1] = songAuthor;
             data[i][2] = playButton;
             data[i][3] = serduszkoButton;
+            data[i][4] = addToPlaylist;
         }
 
         DefaultTableModel model = new DefaultTableModel(data, columnNames);
         JTable table = new JTable(model);
 
         TableColumn playColumn = table.getColumnModel().getColumn(2);
-        playColumn.setCellRenderer(new ButtonRenderer());
+
+        IconGenerator iconGenerator = new IconGenerator(15, 15);
+        ImageIcon playIcon = iconGenerator.createIcon("./resources/play.png");
+        playColumn.setCellRenderer(new ButtonRenderer(playIcon));
         playColumn.setCellEditor(new ButtonEditor(new JCheckBox(), model, table, mediaManager));
 
         TableColumn serduszkoColumn = table.getColumnModel().getColumn(3);
-        serduszkoColumn.setCellRenderer(new ButtonRenderer());
+        ImageIcon heart = iconGenerator.createIcon("./resources/images/heart.png");
+        serduszkoColumn.setCellRenderer(new ButtonRenderer(heart));
         serduszkoColumn.setCellEditor(new ButtonEditor(new JCheckBox(), model, table, mediaManager));
 
+        TableColumn addToPlaylistColumn = table.getColumnModel().getColumn(4);
+        ImageIcon playlist = iconGenerator.createIcon("./resources/images/plus.png");
+        addToPlaylistColumn.setCellRenderer(new ButtonRenderer(playlist));
+        addToPlaylistColumn.setCellEditor(new ButtonEditor(new JCheckBox(), model, table, mediaManager));
+
         songPanel.setLocation(songPanelX, songPanelY);
-        System.out.println(songPanelX + " y:" + songPanelY);
+
         songPanel.removeAll();
         songPanel.add(new JScrollPane(table), BorderLayout.CENTER);
         songPanel.revalidate();
