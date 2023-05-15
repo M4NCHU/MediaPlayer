@@ -1,11 +1,8 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
+
 import java.awt.*;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -17,10 +14,9 @@ import java.util.List;
 public class SidebarPanel extends JPanel {
     private JPanel leftPanel;
     public JList<String> playlistList;
-    private JSplitPane splitPane;
-private int sidebarButtonsHeight = 20;
-private String sidebarBtnColor = "#2C3E50";
-private String sidebarBtnForeColor = "#ffffff";
+        private int sidebarButtonsHeight = 20;
+        private String sidebarBtnColor = "#2C3E50";
+        private String sidebarBtnForeColor = "#ffffff";
 
         String selectedPlaylist;
 
@@ -61,7 +57,6 @@ private String sidebarBtnForeColor = "#ffffff";
                 addSongBtn.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-
                                 saveSong.saveMp3File(leftPanel);
                                 checkMainPlaylist();
                         }
@@ -80,10 +75,8 @@ private String sidebarBtnForeColor = "#ffffff";
                                 }
                         }
                 });
-
                 // Przykładowa lista odtwarzania
                 DefaultListModel<String> playlistModel = new DefaultListModel<>();
-
 
 
                 playlistList = new JList<>(playlistModel);
@@ -154,44 +147,7 @@ private String sidebarBtnForeColor = "#ffffff";
                 }
         }
 
-        public Boolean checkIfFavourite() {
-                File songsDir = new File("./resources/songs/");
-                File allSongsFile = new File("./resources/playlists/All Songs.txt");
 
-                // Check if All Songs.txt exists
-                if (!allSongsFile.exists()) {
-                        try {
-                                allSongsFile.createNewFile();
-                        } catch (IOException e) {
-                                e.printStackTrace();
-                        }
-                }
-
-                // Read existing paths from All Songs.txt
-                List<String> existingPaths = new ArrayList<>();
-                try {
-                        existingPaths = Files.readAllLines(allSongsFile.toPath());
-                } catch (IOException e) {
-                        e.printStackTrace();
-                }
-
-                // Find new paths in the songs directory
-
-                File[] songFiles = songsDir.listFiles();
-                if (songFiles != null) {
-                        for (File songFile : songFiles) {
-                                String songPath = "./resources/songs/" + songFile.getName();
-
-                                if (!existingPaths.contains(songPath)) {
-                                        return false;
-                                }
-
-                        }
-                }
-
-
-                return true;
-        }
 
 
         public static void createNewPlaylist(String fileName) {

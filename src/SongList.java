@@ -8,7 +8,6 @@ import java.util.List;
 public class SongList {
 
     private List<String> songPaths;
-    private String playList;
     private File songsFile;
 
     public SongList(String songsFilePath) {
@@ -16,9 +15,6 @@ public class SongList {
         songsFile = new File(songsFilePath);
 
     }
-
-
-
     private void loadAllSongs() {
         File songsFolder = new File("./resources/songs");
 

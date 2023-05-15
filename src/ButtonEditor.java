@@ -9,10 +9,8 @@ import java.nio.file.Files;
 import java.util.List;
 
 public class ButtonEditor extends DefaultCellEditor {
-    private JButton playButton;
-    private JButton serduszkoButton;
-    private JButton addToPlaylist;
-    private JButton button;
+    private MusicPlayer musicPlayer;
+    private JButton playButton, addToPlaylist, serduszkoButton;
     private String label;
     private boolean isPushed;
     private DefaultTableModel model;
@@ -21,11 +19,13 @@ public class ButtonEditor extends DefaultCellEditor {
     public JList<Song> songList;
     private MediaManager mediaManager;
     private ImageIcon playIcon, pauseIcon;
+    public static JLabel titleLabel;
 
 
-    public ButtonEditor(JCheckBox checkBox, DefaultTableModel model, JTable table, MediaManager mediaManager) {
+    public ButtonEditor(JCheckBox checkBox, DefaultTableModel model, JTable table, MediaManager mediaManager, MusicPlayer musicPlayer) {
 
         super(checkBox);
+        this.musicPlayer = musicPlayer;
         this.model = model;
         this.table = table;
         this.mediaManager = mediaManager;
@@ -43,11 +43,12 @@ public class ButtonEditor extends DefaultCellEditor {
                 String songPath = (String) model.getValueAt(row, 1);
                 mediaManager.playSong(songPath);
                 fireEditingStopped();
+                musicPlayer.setSongName(songPath);
             }
         });
         serduszkoButton = new JButton();
         serduszkoButton.setOpaque(true);
-        serduszkoButton.setText("serce");
+        serduszkoButton.setText("Polubiono");
         serduszkoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 addSongToPlaylist("Ulubione");
@@ -56,7 +57,7 @@ public class ButtonEditor extends DefaultCellEditor {
 
         addToPlaylist = new JButton();
         addToPlaylist.setOpaque(true);
-        addToPlaylist.setText("serce");
+        addToPlaylist.setText("Dodaj do playlisty");
 
         addToPlaylist.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -65,30 +66,15 @@ public class ButtonEditor extends DefaultCellEditor {
 
                 // Wyświetlanie okna dialogowego z listą playlist
                 showPlaylistDialog(playlistList);
-//                int row = table.convertRowIndexToModel(table.getEditingRow());
-//                String songPath = (String) model.getValueAt(row, 1);
-//                try {
-//                    File file = new File("./resources/playlists/Ulubione.txt");
-//                    if (file.exists() && file.isFile()) {
-//                        List<String> lines = Files.readAllLines(file.toPath());
-//                        if (lines.contains(songPath)) {
-//                            lines.remove(songPath);
-//                            FileWriter writer = new FileWriter(file, false);
-//                            for (String line : lines) {
-//                                writer.write(line + "\n");
-//                            }
-//                            writer.close();
-//                            JOptionPane.showMessageDialog(table, "Usunięto ");
-//                            return;
-//                        }
-//                    }
-//
-//                    FileWriter writer = new FileWriter(file, true);
-//                    writer.write(songPath + "\n");
-//                    writer.close();
-//                } catch (IOException ex) {
-//                    ex.printStackTrace();
-//                }
+
+                // Pobranie wybranej playlisty
+                String selectedPlaylist = playlistList.getSelectedValue();
+
+                // Sprawdzenie, czy wybrano playlistę
+                if (selectedPlaylist != null) {
+                    // Dodanie ścieżki do pliku dla wybranej playlisty
+                    addSongToPlaylist(selectedPlaylist);
+                }
             }
         });
     }
@@ -149,6 +135,7 @@ public class ButtonEditor extends DefaultCellEditor {
             FileWriter writer = new FileWriter(file, true);
             writer.write(songPath + "\n");
             writer.close();
+            JOptionPane.showMessageDialog(table, "Dodano  do  "+playlistName);
         } catch (IOException ex) {
             ex.printStackTrace();
         }

@@ -10,24 +10,16 @@ import java.util.List;
 public class MediaManager {
     List<String> songPaths;
     private MediaPlayer currentMediaPlayer;
-
     private MediaPlayer mediaPlayer;
-
     private int songNumber = 0;
-
     private boolean isPlaying = false;
     private String songText = "";
     private JFXPanel fxPanel;
 
-
-    public MediaManager(){
-        String songPath = "";
-
-    }
-
     public MediaManager(List<String> songsList){
         songPaths = songsList;
         fxPanel = new JFXPanel();
+
 
     }
 
@@ -59,7 +51,8 @@ public class MediaManager {
 
             isPlaying = true;
             mediaPlayer.play();
-            songText = "siema";
+            songText = selectedSongPath;
+
         } catch (MediaException e) {
             System.out.println("Nie można odtworzyć pliku: " + selectedSongPath);
         }
@@ -139,8 +132,6 @@ public class MediaManager {
 
         }
     }
-
-
 
     // Check status of media player
     public boolean getMediaPlayerStatus() {

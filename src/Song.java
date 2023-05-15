@@ -12,11 +12,9 @@ public class Song {
         this.songPath = songPath;
         this.isFavorite = isFavorite;
     }
-
     public int getSongId() {
         return songId;
     }
-
     public String getSongName() {
         return songName;
     }

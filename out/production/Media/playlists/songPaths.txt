@@ -1,1 +1,2 @@
 .\resources\songs\smoke-143172.mp3
+./resources/songs/relaxing-145038.mp3

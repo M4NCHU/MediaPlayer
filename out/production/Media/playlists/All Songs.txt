@@ -1,6 +1,6 @@
 ./resources/songs/relaxing-145038.mp3
-./resources/songs/smoke-143172.mp3
 ./resources/songs/voice-over-music-141541.mp3
 ./resources/songs/easy-lifestyle-137766.mp3
-./resources/songs/coniferous-forest-142569.mp3
 ./resources/songs/the-beat-of-nature-122841.mp3
+./resources/songs/smoke-143172.mp3
+./resources/songs/coniferous-forest-142569.mp3
