@@ -1,19 +1,21 @@
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.List;
 
 public class ButtonRenderer extends JButton implements TableCellRenderer {
     ImageIcon ic;
     String type = "";
+
+
     public ButtonRenderer(ImageIcon icon, String type) {
         setOpaque(true);
         ic = icon;
         if (type != null) {
             this.type = type;
         }
+
     }
 
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -47,17 +49,23 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
     }
 
     public boolean isSongInPlaylist(String song) {
-        String playlistFilePath = "./resources/playlists/Ulubione.txt";
+        String playlistFilePath = "./resources/playlists/Ulubione.dat";
         String songPath = "./resources/songs/"+song+".mp3";
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(playlistFilePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals(songPath)) {
-                    return true;
+        try {
+            File playlistFile = new File(playlistFilePath);
+            if (playlistFile.exists() && playlistFile.isFile()) {
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistFile));
+                List<Song> songs = (List<Song>) inputStream.readObject();
+                inputStream.close();
+
+                for (Song playlistSong : songs) {
+                    if (playlistSong.getSongPath().equals(songPath)) {
+                        return true;
+                    }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
         return false;

@@ -1,4 +1,7 @@
-public class Song {
+import java.io.IOException;
+import java.io.Serializable;
+
+public class Song implements Serializable {
 
     private String songName;
     private String songPath;
@@ -12,9 +15,11 @@ public class Song {
         this.songPath = songPath;
         this.isFavorite = isFavorite;
     }
+
     public int getSongId() {
         return songId;
     }
+
     public String getSongName() {
         return songName;
     }
@@ -37,5 +42,13 @@ public class Song {
 
     public void setFavorite(boolean favorite) {
         isFavorite = favorite;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
     }
 }

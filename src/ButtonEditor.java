@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 public class ButtonEditor extends DefaultCellEditor {
@@ -64,15 +66,15 @@ public class ButtonEditor extends DefaultCellEditor {
                 DefaultListModel<String> modelPlaylist = new DefaultListModel<>();
                 JList<String> playlistList = new JList<>(modelPlaylist);
 
-                // Wyświetlanie okna dialogowego z listą playlist
+                // Show playlist dialog
                 showPlaylistDialog(playlistList);
 
-                // Pobranie wybranej playlisty
+                // Get new playlist
                 String selectedPlaylist = playlistList.getSelectedValue();
 
-                // Sprawdzenie, czy wybrano playlistę
+                // Check if playlist is selected
                 if (selectedPlaylist != null) {
-                    // Dodanie ścieżki do pliku dla wybranej playlisty
+                    // Add path to playlist
                     addSongToPlaylist(selectedPlaylist);
                 }
             }
@@ -116,28 +118,25 @@ public class ButtonEditor extends DefaultCellEditor {
     public void addSongToPlaylist(String playlistName) {
         int row = table.convertRowIndexToModel(table.getEditingRow());
         String songPath = (String) model.getValueAt(row, 1);
-        try {
-            File file = new File("./resources/playlists/"+playlistName+".txt");
-            if (file.exists() && file.isFile()) {
-                List<String> lines = Files.readAllLines(file.toPath());
-                if (lines.contains(songPath)) {
-                    lines.remove(songPath);
-                    FileWriter writer = new FileWriter(file, false);
-                    for (String line : lines) {
-                        writer.write(line + "\n");
-                    }
-                    writer.close();
-                    JOptionPane.showMessageDialog(table, "Usunięto  z "+playlistName);
-                    return;
-                }
-            }
+        String songName = (String) model.getValueAt(row, 0);
+        File file = new File("./resources/playlists/" + playlistName + ".dat");
+        SongList playlist = new SongList(file.getPath());
+        playlist.loadPlaylist();
+        Song song = new Song(songName, songPath, false);
 
-            FileWriter writer = new FileWriter(file, true);
-            writer.write(songPath + "\n");
-            writer.close();
-            JOptionPane.showMessageDialog(table, "Dodano  do  "+playlistName);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        // Check if the song already exists in the playlist
+        if (playlist.isSongInPlaylist(songPath)) {
+            playlist.removeSong(song);
+            playlist.savePlaylist();
+            if (!playlistName.equals("Ulubione")) {
+                JOptionPane.showMessageDialog(table, "Usunięto z " + playlistName);
+            }
+        } else {
+            playlist.addSong(song);
+            playlist.savePlaylist();
+            if (!playlistName.equals("Ulubione")) {
+                JOptionPane.showMessageDialog(table, "Dodano do " + playlistName);
+            }
         }
     }
 
@@ -148,12 +147,12 @@ public class ButtonEditor extends DefaultCellEditor {
         modelPlaylist.clear();
 
         for (File playlistFile : playlistFiles) {
-            if (playlistFile.isFile() && playlistFile.getName().endsWith(".txt")) {
-                modelPlaylist.addElement(playlistFile.getName().replace(".txt", ""));
+            if (playlistFile.isFile() && playlistFile.getName().endsWith(".dat")) {
+                modelPlaylist.addElement(playlistFile.getName().replace(".dat", ""));
             }
         }
 
-        // Wyświetlanie okna dialogowego z listą playlist
+        // Dialog with playlist list
         JOptionPane.showMessageDialog(null, playlistList);
     }
 }

@@ -9,6 +9,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.List;
 
 
@@ -34,6 +37,8 @@ public class MusicPlayer extends JFrame implements ActionListener {
     JPanel buttonPanel;
     public JLabel titleLabel;
     String songTitle = "PRZYKLAD";
+
+    JProgressBar progressBar;
 
 
     public MusicPlayer() {
@@ -136,8 +141,8 @@ public class MusicPlayer extends JFrame implements ActionListener {
         // Change BG color of Music Control panel
         buttonPanel.setBackground(Color.decode("#34495E"));
 
-        JProgressBar progressBar = new JProgressBar();
-        progressBar.setValue(50);
+        progressBar = new JProgressBar();
+        mediaManager.setSongProgressBar(progressBar);
 
 
         titleLabel = new JLabel(songTitle);
@@ -164,19 +169,43 @@ public class MusicPlayer extends JFrame implements ActionListener {
         new MusicPlayer();
     }
 
-    public void refreshTable( String selectedPlaylist) {
+    public void refreshTable(String selectedPlaylist) {
+        SongList songsList;
 
-        if (selectedPlaylist == "" || selectedPlaylist == "All Songs"){
-            songsList.setSongsFilePath("./resources/playlists/All Songs.txt");
+        if (selectedPlaylist == null || selectedPlaylist.isEmpty() || selectedPlaylist.equals("All Songs")) {
+            songsList = new SongList("./resources/playlists/All Songs.dat");
         } else {
-            songsList.setSongsFilePath("./resources/playlists/"+selectedPlaylist+".txt");
+            songsList = new SongList("./resources/playlists/" + selectedPlaylist + ".dat");
         }
 
-        songPaths = songsList.getSongPaths(); // Get songs from SongList Class
+
+        songsList.loadPlaylist(); // Wczytaj playlistę z pliku
+        List<String> songPaths = songsList.getSongPaths();
+
+
+
+
         mediaManager.setSongPaths(songPaths);
+        mediaManager.getSongProgressPercentage();
         songPanelX = songPanel.getX();
         songPanelY = songPanel.getY();
-        String[] columnNames = {"Nazwa", "Autor", "Play", "Serduszko", "Dodaj do playlisty"};
+        String[] columnNames = {"Nazwa", "Ścieżka", "Odtwarzaj", "Dodaj do ulubionych", "Dodaj do playlisty"};
+
+        if (songPaths.isEmpty()) {
+            Object[][] data = {{"Pusta playlista", "", "", "", ""}};
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            JTable table = new JTable(model);
+            songPanel.setLocation(songPanelX, songPanelY);
+            songPanel.removeAll();
+            songPanel.add(new JScrollPane(table), BorderLayout.CENTER);
+            songPanel.revalidate();
+            songPanel.repaint();
+            return;
+        }
+
+
+
+
         Object[][] data = new Object[songPaths.size()][5];
 
         for (int i = 0; i < songPaths.size(); i++) {
@@ -187,7 +216,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
             String songLabel = song.getSongName();
             String songAuthor = song.getSongPath();
             JButton playButton = new JButton("Play");
-            JButton serduszkoButton = new JButton("Serduszko");
+            JButton serduszkoButton = new JButton("Dodaj do ulubionych");
             JButton addToPlaylist = new JButton("Dodaj do playlisty");
 
             data[i][0] = songLabel;
@@ -197,9 +226,10 @@ public class MusicPlayer extends JFrame implements ActionListener {
             data[i][4] = addToPlaylist;
         }
 
+
+
         DefaultTableModel model = new DefaultTableModel(data, columnNames);
         JTable table = new JTable(model);
-
         TableColumn playColumn = table.getColumnModel().getColumn(2);
 
 
@@ -219,6 +249,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
         addToPlaylistColumn.setCellRenderer(new ButtonRenderer(playlist, ""));
         addToPlaylistColumn.setCellEditor(new ButtonEditor(new JCheckBox(), model, table, mediaManager, this));
 
+
         songPanel.setLocation(songPanelX, songPanelY);
 
         songPanel.removeAll();
@@ -226,17 +257,20 @@ public class MusicPlayer extends JFrame implements ActionListener {
         songPanel.revalidate();
         songPanel.repaint();
     }
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
     }
 
+
+    public void updateProgressBar() {
+        mediaManager.updateProgressBar();
+    }
+
     public void setSongName(String songName) {
-
-        String song = new File(songName).getName().replace(".mp3", "");
-        songTitle = song;
-
-
+        songTitle = new File(songName).getName().replace(".mp3", "");
         titleLabel.setText(songTitle);
     }
 }

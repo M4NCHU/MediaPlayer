@@ -1,10 +1,14 @@
 import javafx.embed.swing.JFXPanel;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MediaManager {
@@ -15,6 +19,12 @@ public class MediaManager {
     private boolean isPlaying = false;
     private String songText = "";
     private JFXPanel fxPanel;
+    private JProgressBar songProgressBar;
+    private Timer timer;
+    private TimerTask task;
+    private Media media;
+
+
 
     public MediaManager(List<String> songsList){
         songPaths = songsList;
@@ -53,10 +63,66 @@ public class MediaManager {
             mediaPlayer.play();
             songText = selectedSongPath;
 
+            getSongProgressPercentage();
+
+            startTimerTask();
+
         } catch (MediaException e) {
             System.out.println("Nie można odtworzyć pliku: " + selectedSongPath);
         }
     }
+
+    // Start the timer task to update the progress bar
+    private void startTimerTask() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+
+
+
+        timer = new Timer();
+        task = new TimerTask() {
+            @Override
+            public void run() {
+                updateProgressBar();
+            }
+        };
+
+        // Schedule the task to run every second
+        timer.scheduleAtFixedRate(task, 0, 1000);
+    }
+
+    // Update the progress bar based on the current playback time
+    public void updateProgressBar() {
+        if (currentMediaPlayer != null && songProgressBar != null) {
+            double progress = currentMediaPlayer.getCurrentTime().toSeconds() /
+                    currentMediaPlayer.getTotalDuration().toSeconds();
+            int percentage = (int) (progress * 100);
+
+            songProgressBar.setValue(percentage);
+            System.out.println("Progress: " + percentage + "%");
+        }
+    }
+
+    public void  getSongProgressPercentage() {
+        if (currentMediaPlayer != null && songProgressBar != null) {
+            double progress = currentMediaPlayer.getCurrentTime().toSeconds() /
+                    currentMediaPlayer.getTotalDuration().toSeconds();
+            int percentage = (int) (progress * 100);
+            songProgressBar.setValue(percentage);
+
+        }
+
+    }
+
+
+    public void setSongProgressBar(JProgressBar progressBar) {
+        songProgressBar = progressBar;
+    }
+
+
+
 
 
     // Next song method

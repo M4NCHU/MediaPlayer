@@ -1,2 +1,0 @@
-./resources/songs/voice-over-music-141541.mp3
-./resources/songs/relaxing-145038.mp3

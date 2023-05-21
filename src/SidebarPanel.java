@@ -18,9 +18,12 @@ public class SidebarPanel extends JPanel {
         private String sidebarBtnColor = "#2C3E50";
         private String sidebarBtnForeColor = "#ffffff";
 
+        private SongList allSongsList;
         String selectedPlaylist;
 
         public SidebarPanel() {
+                allSongsList = new SongList("./resources/playlists/All Songs.dat");
+                allSongsList.loadPlaylist();
                 checkMainPlaylist();
                 Mp3FileSaver saveSong = new Mp3FileSaver();
 
@@ -67,15 +70,12 @@ public class SidebarPanel extends JPanel {
                         public void actionPerformed(ActionEvent e) {
                                 String playlistName = JOptionPane.showInputDialog(leftPanel, "Podaj nazwę nowej playlisty:");
                                 if (playlistName != null && !playlistName.isEmpty()) {
-
                                         createNewPlaylist(playlistName);
-                                        DefaultListModel<String> model = (DefaultListModel<String>) playlistList.getModel();
-                                        model.addElement(playlistName);
-
+                                        refreshPlaylist();
                                 }
                         }
                 });
-                // Przykładowa lista odtwarzania
+                // playlist
                 DefaultListModel<String> playlistModel = new DefaultListModel<>();
 
 
@@ -87,7 +87,7 @@ public class SidebarPanel extends JPanel {
                 playlistList.setSelectionForeground(Color.WHITE);
                 JScrollPane scrollPane = new JScrollPane(playlistList);
                 refreshPlaylist();
-                // Dodanie tytułu, przycisku i listy do sidebara
+
                 leftPanel.setLayout(new BorderLayout());
                 leftPanel.add(titlePanel, BorderLayout.NORTH);
                 leftPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -104,9 +104,11 @@ public class SidebarPanel extends JPanel {
 
         public void checkMainPlaylist() {
                 File songsDir = new File("./resources/songs/");
-                File allSongsFile = new File("./resources/playlists/All Songs.txt");
+                File allSongsFile = new File("./resources/playlists/All Songs.dat");
 
-                // Check if All Songs.txt exists
+                // ...
+
+                // Check if All Songs.dat exists
                 if (!allSongsFile.exists()) {
                         try {
                                 allSongsFile.createNewFile();
@@ -116,12 +118,12 @@ public class SidebarPanel extends JPanel {
                         }
                 }
 
-                // Read existing paths from All Songs.txt
-                List<String> existingPaths = new ArrayList<>();
-                try {
-                        existingPaths = Files.readAllLines(allSongsFile.toPath());
-                } catch (IOException e) {
-                        e.printStackTrace();
+                // Read existing songs from All Songs.dat
+                SongList allSongsList = new SongList(allSongsFile.getPath());
+                allSongsList.loadPlaylist();
+                List<String> existingPaths = allSongsList.getSongPaths();
+                for (Song song : allSongsList.getSongs()) {
+                        existingPaths.add(song.getSongPath());
                 }
 
                 // Find new paths in the songs directory
@@ -129,7 +131,7 @@ public class SidebarPanel extends JPanel {
                 File[] songFiles = songsDir.listFiles();
                 if (songFiles != null) {
                         for (File songFile : songFiles) {
-                                String songPath = "./resources/songs/"+songFile.getName();
+                                String songPath = "./resources/songs/" + songFile.getName();
 
                                 if (!existingPaths.contains(songPath)) {
                                         newPaths.add(songPath);
@@ -137,13 +139,16 @@ public class SidebarPanel extends JPanel {
                         }
                 }
 
-                // Append new paths to All Songs.txt
+                // Create new Song objects for new paths and add them to the playlist
                 if (!newPaths.isEmpty()) {
-                        try {
-                                Files.write(allSongsFile.toPath(), newPaths, StandardOpenOption.APPEND);
-                        } catch (IOException e) {
-                                e.printStackTrace();
+                        for (String newPath : newPaths) {
+                                String songName = newPath.substring(newPath.lastIndexOf("/") + 1);
+                                Song newSong = new Song(songName, newPath, false);
+                                allSongsList.addSong(newSong);
                         }
+
+                        // Save the updated playlist
+                        allSongsList.savePlaylist();
                 }
         }
 
@@ -152,7 +157,7 @@ public class SidebarPanel extends JPanel {
 
         public static void createNewPlaylist(String fileName) {
                 try {
-                        String path = "./resources/playlists/" + fileName + ".txt";
+                        String path = "./resources/playlists/" + fileName + ".dat";
                         File file = new File(path);
                         if (file.exists()) {
                                 System.out.println("Playlist already exists, try another name: " + path);
@@ -170,17 +175,15 @@ public class SidebarPanel extends JPanel {
         }
 
         public void refreshPlaylist() {
-
                 DefaultListModel<String> model = (DefaultListModel<String>) playlistList.getModel();
                 File folder = new File("./resources/playlists/");
                 File[] playlistFiles = folder.listFiles();
                 model.clear();
                 for (File playlistFile : playlistFiles) {
-                        if (playlistFile.isFile() && playlistFile.getName().endsWith(".txt")) {
-                                model.addElement(playlistFile.getName().replace(".txt", ""));
+                        if (playlistFile.isFile() && playlistFile.getName().endsWith(".dat")) {
+                                model.addElement(playlistFile.getName().replace(".dat", ""));
                         }
                 }
-
         }
 
 }
