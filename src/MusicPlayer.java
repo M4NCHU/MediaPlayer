@@ -36,7 +36,7 @@ public class MusicPlayer extends JFrame implements ActionListener {
     SongList songsList;
     JPanel buttonPanel;
     public JLabel titleLabel;
-    String songTitle = "PRZYKLAD";
+    String songTitle = "-";
 
     JProgressBar progressBar;
 

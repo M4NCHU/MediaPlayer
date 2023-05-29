@@ -24,14 +24,15 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
         if (type == "heart") {
             Object songLabelValue = table.getModel().getValueAt(row, 0);
             boolean isFavorite = isSongInPlaylist(songLabelValue.toString());
+
             IconGenerator iconGenerator = new IconGenerator(15, 15);
             ImageIcon heartIconFilled = iconGenerator.createIcon("./resources/heart.png");
             ImageIcon heartIconEmpty = iconGenerator.createIcon("./resources/images/heartEmpty.png");
 
             if (isFavorite) {
-                setIcon(heartIconFilled); // Ustawienie ikony pełnego serduszka
+                setIcon(heartIconFilled); // Set full heart icon
             } else {
-                setIcon(heartIconEmpty); // Ustawienie ikony pustego serduszka
+                setIcon(heartIconEmpty); // Set empty heart icon
             }
         } else {
             setIcon(ic);

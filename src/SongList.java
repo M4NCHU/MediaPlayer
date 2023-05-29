@@ -25,11 +25,22 @@ public class SongList implements Serializable {
     }
 
     public boolean isSongInPlaylist(String songPath) {
-        for (Song song : songs) {
-            if (song.getSongPath().equals(songPath)) {
-                return true;
+        try {
+            if (playlistFile.exists() && playlistFile.isFile()) {
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistFile));
+                List<Song> loadedSongs = (List<Song>) inputStream.readObject();
+                inputStream.close();
+
+                for (Song song : loadedSongs) {
+                    if (song.getSongPath().equals(songPath)) {
+                        return true;
+                    }
+                }
             }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
+
         return false;
     }
 
@@ -38,7 +49,7 @@ public class SongList implements Serializable {
             ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(playlistFile));
             outputStream.writeObject(songs);
             outputStream.close();
-            System.out.println("Playlist saved successfully.");
+            System.out.println("Zapisano playlistę.");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,7 +67,7 @@ public class SongList implements Serializable {
         if (playlistFile.exists() && playlistFile.isFile()) {
             try {
                 if (playlistFile.length() == 0) {
-                    System.out.println("Playlist file is empty.");
+                    System.out.println("Playlista pusta.");
                     return;
                 }
                 ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistFile));
@@ -67,13 +78,13 @@ public class SongList implements Serializable {
                 songs.addAll(loadedSongs); // Dodaj wczytane utwory do SongList
 
                 if (loadedSongs.isEmpty()) {
-                    System.out.println("Playlist is empty.");
+                    System.out.println("Playlista pusta.");
                 } else {
-                    System.out.println("Successfully loaded.");
+                    System.out.println("Załadowano playlistę.");
                 }
 
             } catch (EOFException e) {
-                System.out.println("Playlist file is empty or not valid.");
+                System.out.println("Playlista pusta.");
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

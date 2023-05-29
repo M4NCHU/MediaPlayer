@@ -160,17 +160,17 @@ public class SidebarPanel extends JPanel {
                         String path = "./resources/playlists/" + fileName + ".dat";
                         File file = new File(path);
                         if (file.exists()) {
-                                System.out.println("Playlist already exists, try another name: " + path);
+                                System.out.println("Playlista istnieje. Spróbuj innej nazwy: " + path);
                                 return;
                         }
                         boolean success = file.createNewFile();
                         if (success) {
-                                System.out.println("New playlist created: " + path);
+                                System.out.println("Utworzono playlistę: " + path);
                         } else {
-                                System.out.println("Failed to create playlist: " + path);
+                                System.out.println("Wystąpił błąd podczas tworzenia playlisty: " + path);
                         }
                 } catch (IOException e) {
-                        System.err.println("Error creating new playlist file: " + e.getMessage());
+                        System.err.println("Wystąpił błąd podczas tworzenia playlisty: " + e.getMessage());
                 }
         }
 

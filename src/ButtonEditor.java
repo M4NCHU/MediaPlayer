@@ -119,13 +119,17 @@ public class ButtonEditor extends DefaultCellEditor {
         int row = table.convertRowIndexToModel(table.getEditingRow());
         String songPath = (String) model.getValueAt(row, 1);
         String songName = (String) model.getValueAt(row, 0);
-        File file = new File("./resources/playlists/" + playlistName + ".dat");
-        SongList playlist = new SongList(file.getPath());
+
+        String playlistFilePath = "./resources/playlists/" + playlistName + ".dat";
+        File playlistFile = new File(playlistFilePath);
+        SongList playlist = new SongList(playlistFilePath);
         playlist.loadPlaylist();
-        Song song = new Song(songName, songPath, false);
+        boolean isFavorite = playlist.isSongInPlaylist(songPath);
+        System.out.println("liked: " + isFavorite);
+        Song song = new Song(songName, songPath, isFavorite);
 
         // Check if the song already exists in the playlist
-        if (playlist.isSongInPlaylist(songPath)) {
+        if (isFavorite) {
             playlist.removeSong(song);
             playlist.savePlaylist();
             if (!playlistName.equals("Ulubione")) {
