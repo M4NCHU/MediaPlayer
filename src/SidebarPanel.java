@@ -22,7 +22,7 @@ public class SidebarPanel extends JPanel {
         String selectedPlaylist;
 
         public SidebarPanel() {
-                allSongsList = new SongList("./resources/playlists/All Songs.dat");
+                allSongsList = new SongList(Globals.playlistFolder + "All Songs.dat");
                 allSongsList.loadPlaylist();
                 checkMainPlaylist();
                 Mp3FileSaver saveSong = new Mp3FileSaver();
@@ -78,7 +78,6 @@ public class SidebarPanel extends JPanel {
                 // playlist
                 DefaultListModel<String> playlistModel = new DefaultListModel<>();
 
-
                 playlistList = new JList<>(playlistModel);
                 playlistList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
                 playlistList.setBackground(Color.decode(sidebarBtnColor));
@@ -103,10 +102,8 @@ public class SidebarPanel extends JPanel {
     }
 
         public void checkMainPlaylist() {
-                File songsDir = new File("./resources/songs/");
-                File allSongsFile = new File("./resources/playlists/All Songs.dat");
-
-                // ...
+                File songsDir = new File(Globals.songsFolder);
+                File allSongsFile = new File(Globals.playlistFolder + "All Songs.dat");
 
                 // Check if All Songs.dat exists
                 if (!allSongsFile.exists()) {
@@ -131,7 +128,7 @@ public class SidebarPanel extends JPanel {
                 File[] songFiles = songsDir.listFiles();
                 if (songFiles != null) {
                         for (File songFile : songFiles) {
-                                String songPath = "./resources/songs/" + songFile.getName();
+                                String songPath = Globals.songsFolder + songFile.getName();
 
                                 if (!existingPaths.contains(songPath)) {
                                         newPaths.add(songPath);
@@ -157,7 +154,7 @@ public class SidebarPanel extends JPanel {
 
         public static void createNewPlaylist(String fileName) {
                 try {
-                        String path = "./resources/playlists/" + fileName + ".dat";
+                        String path = Globals.playlistFolder + fileName + ".dat";
                         File file = new File(path);
                         if (file.exists()) {
                                 System.out.println("Playlista istnieje. Spróbuj innej nazwy: " + path);
@@ -176,9 +173,10 @@ public class SidebarPanel extends JPanel {
 
         public void refreshPlaylist() {
                 DefaultListModel<String> model = (DefaultListModel<String>) playlistList.getModel();
-                File folder = new File("./resources/playlists/");
+                File folder = new File(Globals.playlistFolder);
                 File[] playlistFiles = folder.listFiles();
                 model.clear();
+                assert playlistFiles != null;
                 for (File playlistFile : playlistFiles) {
                         if (playlistFile.isFile() && playlistFile.getName().endsWith(".dat")) {
                                 model.addElement(playlistFile.getName().replace(".dat", ""));

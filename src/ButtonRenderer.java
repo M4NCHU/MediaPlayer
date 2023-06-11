@@ -23,11 +23,15 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
 
         if (type == "heart") {
             Object songLabelValue = table.getModel().getValueAt(row, 0);
-            boolean isFavorite = isSongInPlaylist(songLabelValue.toString());
+            Object songPath = table.getModel().getValueAt(row, 1);
+            String playlistFilePath = Globals.playlistFolder + "Ulubione.dat";
+            SongList playlist = new SongList(playlistFilePath);
+
+            boolean isFavorite = playlist.isSongInPlaylist(songPath.toString(), "Ulubione");
 
             IconGenerator iconGenerator = new IconGenerator(15, 15);
-            ImageIcon heartIconFilled = iconGenerator.createIcon("./resources/heart.png");
-            ImageIcon heartIconEmpty = iconGenerator.createIcon("./resources/images/heartEmpty.png");
+            ImageIcon heartIconFilled = iconGenerator.createIcon(Globals.imageFolder + "heart.png");
+            ImageIcon heartIconEmpty = iconGenerator.createIcon(Globals.imageFolder + "heartEmpty.png");
 
             if (isFavorite) {
                 setIcon(heartIconFilled); // Set full heart icon
@@ -49,26 +53,4 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
         return this;
     }
 
-    public boolean isSongInPlaylist(String song) {
-        String playlistFilePath = "./resources/playlists/Ulubione.dat";
-        String songPath = "./resources/songs/"+song+".mp3";
-
-        try {
-            File playlistFile = new File(playlistFilePath);
-            if (playlistFile.exists() && playlistFile.isFile()) {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistFile));
-                List<Song> songs = (List<Song>) inputStream.readObject();
-                inputStream.close();
-
-                for (Song playlistSong : songs) {
-                    if (playlistSong.getSongPath().equals(songPath)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
 }

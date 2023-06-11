@@ -16,7 +16,7 @@ public class Mp3FileSaver {
             File selectedFile = fileChooser.getSelectedFile();
             try {
                 FileInputStream inputStream = new FileInputStream(selectedFile);
-                File destinationDirectory = new File("./resources/songs");
+                File destinationDirectory = new File(Globals.songsFolder);
                 if (!destinationDirectory.exists()) {
                     destinationDirectory.mkdir();
                 }
@@ -29,7 +29,7 @@ public class Mp3FileSaver {
                 }
                 inputStream.close();
                 outputStream.close();
-                System.out.println("Plik zapisany w katalogu ./resources/songs");
+                System.out.println("Plik zapisany w katalogu" + Globals.imageFolder);
             } catch (IOException e) {
                 e.printStackTrace();
             }

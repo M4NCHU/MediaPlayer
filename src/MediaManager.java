@@ -5,15 +5,16 @@ import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
+
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
+import javafx.util.*;
 
 public class MediaManager {
-    List<String> songPaths;
-    private MediaPlayer currentMediaPlayer;
+    private List<String> songPaths;
     private MediaPlayer mediaPlayer;
     private int songNumber = 0;
     private boolean isPlaying = false;
@@ -23,111 +24,135 @@ public class MediaManager {
     private Timer timer;
     private TimerTask task;
     private Media media;
+    private JLabel remainingTimeLabel;
+    private JLabel totalTimeLabel;
 
 
+    long remainingMinutes;
+    long remainingSeconds;
 
-    public MediaManager(List<String> songsList){
+    public MediaManager(List<String> songsList) {
         songPaths = songsList;
         fxPanel = new JFXPanel();
-
-
     }
 
     public void playSong(String selectedSongPath) {
+        Thread thread = new Thread(() -> {
+            try {
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                }
 
-        try {
+                media = new Media(new File(selectedSongPath).toURI().toString());
+                mediaPlayer = new MediaPlayer(media);
 
-            if (currentMediaPlayer != null) {
-                currentMediaPlayer.stop();
+                mediaPlayer.setOnEndOfMedia(() -> {
+                    stopSong();
+                });
+
+                isPlaying = true;
+                mediaPlayer.play();
+                songText = selectedSongPath;
+
+                getSongProgressPercentage();
+
+                startTimerTask();
+
+            } catch (MediaException e) {
+                System.out.println("Nie można odtworzyć pliku: " + selectedSongPath);
             }
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-            }
-            // Create media object from file
-            Media media = new Media(new File(selectedSongPath).toURI().toString());
+        });
 
-            // Create New MediaPlayer object and place the media object as argument
-            mediaPlayer = new MediaPlayer(media);
-            // Save Current MediaPlayer object to currentMediaPlayer
-            currentMediaPlayer = mediaPlayer;
-
-            // setting the function called after the end of song playback
-            mediaPlayer.setOnEndOfMedia(() -> {
-                // when the song finishes playing, delete the currently playing MediaPlayer object
-                currentMediaPlayer = null;
-            });
-
-            // Play Music
-
-            isPlaying = true;
-            mediaPlayer.play();
-            songText = selectedSongPath;
-
-            getSongProgressPercentage();
-
-            startTimerTask();
-
-        } catch (MediaException e) {
-            System.out.println("Nie można odtworzyć pliku: " + selectedSongPath);
-        }
+        thread.start();
     }
 
-    // Start the timer task to update the progress bar
+
     private void startTimerTask() {
         if (timer != null) {
             timer.cancel();
             timer = null;
         }
 
-
-
         timer = new Timer();
         task = new TimerTask() {
             @Override
             public void run() {
                 updateProgressBar();
+                remainingTimeLabel.setText(formatTime(getRemainingTime()));
+                totalTimeLabel.setText(formatTime(getTotalTime()));
             }
         };
 
-        // Schedule the task to run every second
         timer.scheduleAtFixedRate(task, 0, 1000);
     }
 
-    // Update the progress bar based on the current playback time
     public void updateProgressBar() {
-        if (currentMediaPlayer != null && songProgressBar != null) {
-            double progress = currentMediaPlayer.getCurrentTime().toSeconds() /
-                    currentMediaPlayer.getTotalDuration().toSeconds();
+        if (mediaPlayer != null && songProgressBar != null) {
+            Duration currentTime = mediaPlayer.getCurrentTime();
+            Duration totalTime = mediaPlayer.getTotalDuration();
+
+            double progress = currentTime.toSeconds() / totalTime.toSeconds();
             int percentage = (int) (progress * 100);
 
+            // Obliczanie czasu pozostałego do końca utworu
+            Duration remainingTime = totalTime.subtract(currentTime);
+            remainingMinutes = (long) remainingTime.toMinutes();
+            remainingSeconds = (long) remainingTime.toSeconds() % 60;
+            System.out.println(remainingSeconds);
+
+            // Obliczanie całkowitej długości utworu
+            long totalMinutes = (long) totalTime.toMinutes();
+            long totalSeconds = (long) totalTime.toSeconds() % 60;
+
+            String remainingTimeFormatted = String.format("%02d:%02d", remainingMinutes, remainingSeconds);
+            String totalTimeFormatted = String.format("%02d:%02d", totalMinutes, totalSeconds);
+
+
+            long currentMinutes = (long) currentTime.toMinutes();
+            long currentSeconds = (long) currentTime.toSeconds() % 60;
+            String currentTimeFormatted = String.format("%02d:%02d", currentMinutes, currentSeconds);
+
+
             songProgressBar.setValue(percentage);
-            System.out.println("Progress: " + percentage + "%");
+            songProgressBar.setForeground(Color.BLACK);
+            songProgressBar.setString(currentTimeFormatted + " / " + totalTimeFormatted);
+
+
+
         }
     }
 
-    public void  getSongProgressPercentage() {
-        if (currentMediaPlayer != null && songProgressBar != null) {
-            double progress = currentMediaPlayer.getCurrentTime().toSeconds() /
-                    currentMediaPlayer.getTotalDuration().toSeconds();
-            int percentage = (int) (progress * 100);
-            songProgressBar.setValue(percentage);
-
+    public int getRemainingTime() {
+        if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+            Duration remaining = mediaPlayer.getTotalDuration().subtract(mediaPlayer.getCurrentTime());
+            return (int) remaining.toSeconds();
         }
-
+        return 0;
     }
 
+    public int getTotalTime() {
+        if (mediaPlayer != null) {
+            Duration totalDuration = mediaPlayer.getTotalDuration();
+            return (int) totalDuration.toSeconds();
+        }
+        return 0;
+    }
+
+
+    public void getSongProgressPercentage() {
+        if (mediaPlayer != null && songProgressBar != null) {
+            double progress = mediaPlayer.getCurrentTime().toSeconds() /
+                    mediaPlayer.getTotalDuration().toSeconds();
+            int percentage = (int) (progress * 100);
+            songProgressBar.setValue(percentage);
+        }
+    }
 
     public void setSongProgressBar(JProgressBar progressBar) {
         songProgressBar = progressBar;
     }
 
-
-
-
-
-    // Next song method
     public void playNextSong() {
-
         if (songNumber < songPaths.size() - 1) {
             songNumber++;
         } else {
@@ -138,13 +163,10 @@ public class MediaManager {
             String selectedSongPath = songPaths.get(songNumber);
             playSong(selectedSongPath);
         } catch (MediaException e) {
-
             System.out.println(e.getMessage());
         }
     }
 
-
-    // Previous song method
     public void playPreviousSong() {
         if (songNumber > 0) {
             songNumber--;
@@ -160,24 +182,13 @@ public class MediaManager {
         }
     }
 
-    // Stop Music Method
     public void stopSong() {
-
-        if (currentMediaPlayer != null) {
+        if (mediaPlayer != null) {
             try {
-                currentMediaPlayer.setOnEndOfMedia(new Runnable() {
-                    @Override
-                    public void run() {
-                        // Remove object
-                        currentMediaPlayer = null;
-                    }
-                });
                 if (isPlaying) {
-                    currentMediaPlayer.pause();
                     mediaPlayer.pause();
                     isPlaying = false;
                 } else {
-                    currentMediaPlayer.play();
                     mediaPlayer.play();
                     isPlaying = true;
                 }
@@ -195,11 +206,21 @@ public class MediaManager {
         this.songPaths = songPaths;
         if (songPaths != null && !songPaths.isEmpty()) {
             String selectedSongPath = songPaths.get(0);
-
         }
     }
 
-    // Check status of media player
+    public String timeRemaining(int timeInSeconds) {
+        long minutes = remainingMinutes;
+        long seconds = remainingSeconds;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public String formatTime(int timeInSeconds) {
+        long minutes = remainingMinutes;
+        long seconds = remainingSeconds;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
     public boolean getMediaPlayerStatus() {
         return isPlaying;
     }

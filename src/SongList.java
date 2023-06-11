@@ -17,29 +17,36 @@ public class SongList implements Serializable {
     }
 
     public void removeSong(Song song) {
-        songs.remove(song);
+        songs.removeIf(s -> s.equals(song));
     }
 
     public List<Song> getSongs() {
         return songs;
     }
 
-    public boolean isSongInPlaylist(String songPath) {
+    public boolean isSongInPlaylist(String songPath, String playlistName ) {
+        File playlistCheck = new File(Globals.playlistFolder + playlistName + ".dat");
+//        System.out.println(playlistCheck);
         try {
-            if (playlistFile.exists() && playlistFile.isFile()) {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistFile));
+            if (playlistCheck.exists() && playlistCheck.isFile()) {
+//                System.out.println("siema");
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(playlistCheck));
                 List<Song> loadedSongs = (List<Song>) inputStream.readObject();
                 inputStream.close();
 
                 for (Song song : loadedSongs) {
+
                     if (song.getSongPath().equals(songPath)) {
                         return true;
                     }
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            if (!(e instanceof EOFException)) {
+                e.printStackTrace();
+            }
         }
+
 
         return false;
     }
