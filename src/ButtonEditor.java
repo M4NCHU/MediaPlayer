@@ -169,6 +169,9 @@ public class ButtonEditor extends DefaultCellEditor {
             }
             if (playlistName.equals("Ulubione")) serduszkoButton.setIcon(heartIconFilled);
         }
+        if (playlistName.equals("Ulubione")) return;
+        musicPlayer.refreshTable(playlistName);
+
     }
 
     private static void showPlaylistDialog(JList<String> playlistList) {

@@ -27,6 +27,8 @@ public class MediaManager {
     private JLabel remainingTimeLabel;
     private JLabel totalTimeLabel;
 
+    private double playbackSpeed;
+
 
     long remainingMinutes;
     long remainingSeconds;
@@ -47,7 +49,7 @@ public class MediaManager {
                 mediaPlayer = new MediaPlayer(media);
 
                 mediaPlayer.setOnEndOfMedia(() -> {
-                    stopSong();
+                    playNextSong();
                 });
 
                 isPlaying = true;
@@ -55,7 +57,7 @@ public class MediaManager {
                 songText = selectedSongPath;
 
                 getSongProgressPercentage();
-
+                songProgressBar.setValue(0);
                 startTimerTask();
 
             } catch (MediaException e) {
@@ -94,6 +96,17 @@ public class MediaManager {
             double progress = currentTime.toSeconds() / totalTime.toSeconds();
             int percentage = (int) (progress * 100);
 
+            int value = (int) (progress * songProgressBar.getMaximum());
+            songProgressBar.setValue(value);
+
+            mediaPlayer.currentTimeProperty().addListener((observable, oldValue, newValue) -> {
+                if (!songProgressBar.getModel().getValueIsAdjusting()) {
+                    double newProgress = newValue.toSeconds() / mediaPlayer.getTotalDuration().toSeconds();
+                    int newValueInt = (int) (newProgress * songProgressBar.getMaximum());
+                    songProgressBar.setValue(newValueInt);
+                }
+            });
+
             // Obliczanie czasu pozostałego do końca utworu
             Duration remainingTime = totalTime.subtract(currentTime);
             remainingMinutes = (long) remainingTime.toMinutes();
@@ -114,6 +127,7 @@ public class MediaManager {
 
 
             songProgressBar.setValue(percentage);
+            songProgressBar.setStringPainted(true);
             songProgressBar.setForeground(Color.BLACK);
             songProgressBar.setString(currentTimeFormatted + " / " + totalTimeFormatted);
 
@@ -206,6 +220,26 @@ public class MediaManager {
         this.songPaths = songPaths;
         if (songPaths != null && !songPaths.isEmpty()) {
             String selectedSongPath = songPaths.get(0);
+        }
+    }
+
+    public void seekTo(int time) {
+        if (mediaPlayer != null) {
+            Duration seekDuration = new Duration(time * 1000);
+            mediaPlayer.seek(seekDuration);
+        }
+    }
+
+    public void setVolume(double volume){
+        if (mediaPlayer != null) {
+            mediaPlayer.setVolume(volume);
+        }
+    }
+
+    public void setPlaybackSpeed(double playbackSpeed) {
+        this.playbackSpeed = playbackSpeed;
+        if (mediaPlayer != null) {
+            mediaPlayer.setRate(playbackSpeed);
         }
     }
 

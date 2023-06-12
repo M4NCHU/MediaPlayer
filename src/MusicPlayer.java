@@ -1,13 +1,14 @@
 import javafx.embed.swing.JFXPanel;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,7 +43,8 @@ public class MusicPlayer extends JFrame implements ActionListener {
     JProgressBar progressBar;
     JLabel remainingTimeLabel;
     JLabel totalTimeLabel;
-
+    private JLabel currentTimeLabel;
+    private boolean seeking = false;
 
     public MusicPlayer() {
         // initialize SongList Class
@@ -94,12 +96,24 @@ public class MusicPlayer extends JFrame implements ActionListener {
         pauseBtn = new JButton(pauseIcon);
 
         songLabel = new JLabel();
-        buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.setBackground(Color.decode("#34495E"));
 
-        buttonPanel.add(previousBtn);
-        buttonPanel.add(playBtn);
-        buttonPanel.add(nextBtn);
+        // Panel z przyciskami - FlowLayout (do umieszczenia przycisków na środku)
+        JPanel buttonContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonContainer.setBackground(Color.decode("#34495E"));
+
+        // Dodanie przycisków do buttonContainer
+        buttonContainer.add(previousBtn);
+        buttonContainer.add(playBtn);
+        buttonContainer.add(nextBtn);
+
+//         Suwak głośności
+
+
+        // Dodanie suwaka głośności i buttonContainer do buttonPanel
+        buttonPanel.add(buttonContainer, BorderLayout.CENTER);
+
 
         playBtn.setIcon(checkStatus ? playIcon : pauseIcon);
 
@@ -143,16 +157,66 @@ public class MusicPlayer extends JFrame implements ActionListener {
         progressBar = new JProgressBar();
         mediaManager.setSongProgressBar(progressBar);
 
-
-
-
         titleLabel = new JLabel(songTitle);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 50);
+        volumeSlider.setMajorTickSpacing(10);
+        volumeSlider.setMinorTickSpacing(1);
+        volumeSlider.setPaintTicks(true);
+        volumeSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                int volume = volumeSlider.getValue();
+                // Zmiana głośności na podstawie wartości suwaka
+                mediaManager.setVolume(volume);
+            }
+        });
+
+        JButton speedUpButton = new JButton("2.0x");
+        speedUpButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Zwiększ prędkość odtwarzania
+                mediaManager.setPlaybackSpeed(2.0);
+            }
+        });
+
+        JButton slowDownButton = new JButton("1.0x");
+        slowDownButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Zmniejsz prędkość odtwarzania
+                mediaManager.setPlaybackSpeed(1.0);
+            }
+        });
+
+// Panel z titleLabel i sliderem
+        JPanel titleAndSliderPanel = new JPanel();
+//        titleAndSliderPanel.setBackground(Color.decode("#34495E"));
+        titleAndSliderPanel.setLayout(new BorderLayout());
+
+// Panel z przyciskami do zmiany prędkości odtwarzania i suwakiem głośności
+        JPanel controlPanel = new JPanel();
+//        controlPanel.setBackground(Color.decode("#34495E"));
+        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.LINE_AXIS));
+
+        controlPanel.add(slowDownButton);
+        controlPanel.add(speedUpButton);
+
+        controlPanel.add(Box.createHorizontalStrut(10)); // Dodatkowy odstęp między przyciskami a suwakiem
+        controlPanel.add(volumeSlider);
+
+// Dodanie titleLabel i controlPanel do panelu titleAndSliderPanel
+        titleAndSliderPanel.add(titleLabel, BorderLayout.WEST);
+        titleAndSliderPanel.add(controlPanel, BorderLayout.EAST);
+
+
 
 
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(createProgressPanel(), BorderLayout.NORTH);
-        bottomPanel.add(titleLabel, BorderLayout.SOUTH);
+        bottomPanel.add(titleAndSliderPanel, BorderLayout.SOUTH);
         bottomPanel.add(buttonPanel, BorderLayout.CENTER);
 
         // UI Container - Components
@@ -264,6 +328,20 @@ public class MusicPlayer extends JFrame implements ActionListener {
         progressBar.setPreferredSize(new Dimension(200, 20));
         progressBar.setStringPainted(true);
         progressBar.setString("");
+
+        progressBar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (mediaManager.getMediaPlayerStatus()) {
+                    int mouseX = e.getX();
+                    int progressBarWidth = progressBar.getWidth();
+                    double progress = (double) mouseX / progressBarWidth;
+                    int totalTime = mediaManager.getTotalTime();
+                    int seekTime = (int) (progress * totalTime);
+                    mediaManager.seekTo(seekTime);
+                }
+            }
+        });
 
         JPanel labelsPanel = new JPanel(new GridLayout(1, 2));
         labelsPanel.add(remainingTimeLabel);
